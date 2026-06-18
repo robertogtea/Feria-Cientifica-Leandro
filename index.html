@@ -3,9 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test</title>
+    <title>MI TRIVIA - Matemática</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #FFF9C4;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1976D2;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background-color: #1976D2;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, background-color 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #1565C0;
+            transform: scale(1.02);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .question-container {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #E3F2FD;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #1976D2;
+            transition: width 0.3s ease;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 2rem;
+            color: #1976D2;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .timer.warning {
+            color: #F44336;
+        }
+
+        .question {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background-color: #E3F2FD;
+            color: #1976D2;
+            border: 3px solid #1976D2;
+            padding: 20px;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .option:hover {
+            background-color: #BBDEFB;
+        }
+
+        .option.correct {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .option.incorrect {
+            background-color: #F44336;
+            color: white;
+            border-color: #F44336;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .feedback.incorrect {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .final-container {
+            display: none;
+            text-align: center;
+        }
+
+        .score {
+            font-size: 3rem;
+            color: #1976D2;
+            margin: 20px 0;
+        }
+
+        .message {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .visible {
+            display: block !important;
+        }
+    </style>
 </head>
 <body>
-    <h1>Test</h1>
+    <div class="container">
+        <!-- Pantalla de inicio -->
+        <div id="start-screen">
+            <h1>MI TRIVIA</h1>
+            <p style="text-align: center; font-size: 1.3rem; color: #333; margin-bottom: 20px;">
+                ¡Pon a prueba tus conocimientos de matemática!
+            </p>
+            <button class="btn" onclick="startGame()">¡Jugar!</button>
+        </div>
+
+        <!-- Pantalla de preguntas -->
+        <div id="question-screen" class="question-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="timer" id="timer">15</div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <!-- Pantalla final -->
+        <div id="final-screen" class="final-container">
+            <h1>¡Juego Terminado!</h1>
+            <div class="score" id="final-score">0/10</div>
+            <div class="message" id="final-message"></div>
+            <button class="btn" onclick="restartGame()">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "¿Cuánto es 5 + 3?",
+                options: ["6", "7", "8", "9"],
+                correct: 2
+            },
+            {
+                question: "¿Cuánto es 12 - 4?",
+                options: ["6", "7", "8", "9"],
+                correct: 2
+            },
+            {
+                question: "¿Cuánto es 3 × 4?",
+                options: ["10", "11", "12", "13"],
+                correct: 2
+            },
+            {
+                question: "¿Cuánto es 20 ÷ 4?",
+                options: ["4", "5", "6", "7"],
+                correct: 1
+            },
+            {
+                question: "¿Cuál es el siguiente número: 2, 4, 6, 8, ...?",
+                options: ["9", "10", "11", "12"],
+                correct: 1
+            },
+            {
+                question: "¿Cuánto es 15 + 25?",
+                options: ["35", "40", "45", "50"],
+                correct: 1
+            },
+            {
+                question: "¿Cuánto es 9 × 2?",
+                options: ["16", "17", "18", "19"],
+                correct: 2
+            },
+            {
+                question: "¿Cuánto es 100 - 30?",
+                options: ["60", "65", "70", "75"],
+                correct: 2
+            },
+            {
+                question: "¿Cuántos lados tiene un triángulo?",
+                options: ["2", "3", "4", "5"],
+                correct: 1
+            },
+            {
+                question: "¿Cuánto es 7 × 7?",
+                options: ["47", "48", "49", "50"],
+                correct: 2
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 15;
+        let canAnswer = true;
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('question-screen').classList.remove('hidden');
+            document.getElementById('question-screen').classList.add('visible');
+            currentQuestion = 0;
+            score = 0;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            canAnswer = true;
+            const question = questions[currentQuestion];
+            document.getElementById('question').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+
+            document.getElementById('feedback').style.display = 'none';
+            
+            // Actualizar barra de progreso
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            
+            // Iniciar temporizador
+            timeLeft = 15;
+            updateTimer();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = timeLeft;
+            if (timeLeft <= 5) {
+                timerElement.classList.add('warning');
+            } else {
+                timerElement.classList.remove('warning');
+            }
+        }
+
+        function selectAnswer(index) {
+            if (!canAnswer) return;
+            canAnswer = false;
+            clearInterval(timer);
+
+            const question = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach((option, i) => {
+                option.onclick = null;
+                if (i === question.correct) {
+                    option.classList.add('correct');
+                } else if (i === index && index !== question.correct) {
+                    option.classList.add('incorrect');
+                }
+            });
+
+            const feedback = document.getElementById('feedback');
+            if (index === question.correct) {
+                score++;
+                feedback.textContent = '¡Correcto! 🎉';
+                feedback.className = 'feedback correct';
+            } else {
+                feedback.textContent = 'Incorrecto 😢';
+                feedback.className = 'feedback incorrect';
+            }
+            feedback.style.display = 'block';
+
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    showFinalScreen();
+                }
+            }, 2000);
+        }
+
+        function timeUp() {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const question = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach((option, i) => {
+                option.onclick = null;
+                if (i === question.correct) {
+                    option.classList.add('correct');
+                }
+            });
+
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = '¡Tiempo agotado! ⏰';
+            feedback.className = 'feedback incorrect';
+            feedback.style.display = 'block';
+
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    showFinalScreen();
+                }
+            }, 2000);
+        }
+
+        function showFinalScreen() {
+            document.getElementById('question-screen').classList.add('hidden');
+            document.getElementById('final-screen').classList.remove('hidden');
+            document.getElementById('final-screen').classList.add('visible');
+            
+            document.getElementById('final-score').textContent = score + '/10';
+            
+            let message = '';
+            if (score === 10) {
+                message = '¡Excelente! Eres un genio de las matemáticas 🌟';
+            } else if (score >= 7) {
+                message = '¡Muy bien! Tienes buenos conocimientos matemáticos 👍';
+            } else if (score >= 5) {
+                message = '¡Bien hecho! Sigue practicando para mejorar 💪';
+            } else {
+                message = '¡No te rindas! La práctica hace al maestro 📚';
+            }
+            document.getElementById('final-message').textContent = message;
+        }
+
+        function restartGame() {
+            document.getElementById('final-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('start-screen').classList.add('visible');
+        }
+    </script>
 </body>
 </html>
